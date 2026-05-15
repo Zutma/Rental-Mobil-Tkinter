@@ -1,11 +1,28 @@
+import theme
 import tkinter as tk
+from views.components import *
 
 class LoginPage(tk.Frame):
     def __init__(self, parent,controller):
         super().__init__(parent)
         self.controller = controller
 
-        self.configure(bg="#F47B2E")
+        self.configure(bg=theme.COLOR_PRIMARY)
 
-        label = tk.Label(self, text="halaman login", font=("arial",20,"bold"), bg="#F47B2E", fg="white")
-        label.pack(expand=True)
+        self.card = tk.Frame(self, bg=theme.COLOR_WHITE, )
+        self.card.place(relx=0.5,rely=0,relwidth=0.5,relheight=1.0)
+
+        TitleLabel(self.card, text="Rental Mobil", bg=theme.COLOR_WHITE).pack(side="top",pady=(70,0))
+
+        self.form_container = tk.Frame(self.card, bg=theme.COLOR_WHITE)
+        self.form_container.place(relx=0.5, rely=0.5, anchor="center")
+
+        tk.Label(self.form_container, text="Username", bg=theme.COLOR_WHITE, font=theme.FONT_NORMAL).pack(pady=(10,0),anchor="w")
+        self.ent_user = InputField(self.form_container,width=35)
+        self.ent_user.pack(fill="x", pady=(5, 15), ipady=10, ipadx=5)
+ 
+        tk.Label(self.form_container, text="Password", bg=theme.COLOR_WHITE, font=theme.FONT_NORMAL).pack(pady=(10,0),anchor="w")
+        self.ent_pass = InputField(self.form_container, show="*", width=35)
+        self.ent_pass.pack(fill="x", pady=(5, 30), ipady=10, ipadx=5)
+
+        PrimaryButton(self.form_container, text="LOGIN", command=lambda: self.controller.show_frame("DashboardPage"), width=35).pack(pady=20)

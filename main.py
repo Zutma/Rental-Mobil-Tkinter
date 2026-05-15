@@ -1,5 +1,6 @@
 import tkinter as tk
 from views.login import LoginPage
+from views.dashboard import DashboardPage
 from tkinter import ttk
 
 class RentalMobilApp(tk.Tk):
@@ -12,11 +13,17 @@ class RentalMobilApp(tk.Tk):
         self.main_container = tk.Frame(self)
         self.main_container.pack(side="top", fill="both", expand=True)
 
+        self.main_container.grid_rowconfigure(0, weight=1)
+        self.main_container.grid_columnconfigure(0, weight=1)
+
         self.frames = {}
 
-        page = LoginPage(parent=self.main_container, controller=self)
+        for F in (LoginPage, DashboardPage):
+            page_name = F.__name__
+            frame = F(parent=self.main_container, controller=self)
+            self.frames[page_name] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
 
-        self.frames[LoginPage] = page
         self.show_frame("LoginPage")
 
     def show_frame(self, page_name):
