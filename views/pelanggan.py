@@ -1,6 +1,6 @@
 import tkinter as tk
 
-class PelangganPage(tk.Frame):
+class PelangganView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller

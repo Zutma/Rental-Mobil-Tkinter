@@ -1,10 +1,9 @@
-from tkinter import Button
 import tkinter as tk
 import theme
-from views.dashboard import DashboardPage
-from views.mobil import MobilPage
-from views.pelanggan import PelangganPage
-from views.transaksi import TransaksiPage
+from views.dashboard import DashboardView
+from views.mobil import MobilView
+from views.pelanggan import PelangganView
+from views.transaksi import TransaksiView
 
 class MainLayout(tk.Frame):
     def __init__(self, parent, controller):
@@ -12,37 +11,38 @@ class MainLayout(tk.Frame):
         self.controller = controller
         self.configure(bg=theme.COLOR_WHITE)
 
-        #1. sidebar
+        # 1. Sidebar Container
         self.sidebar = tk.Frame(self, bg=theme.COLOR_PRIMARY, width=300)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        #2. content
-        self.content = tk.Frame(self, bg=theme.COLOR_WHITE)
-        self.content.pack(side="right", fill="both", expand=True)
+        # 2. Main Content Area
+        self.content_area = tk.Frame(self, bg=theme.COLOR_WHITE)
+        self.content_area.pack(side="right", fill="both", expand=True)
 
-        #grid configuration
-        self.content.grid_rowconfigure(0, weight=1)
-        self.content.grid_columnconfigure(0, weight=1)
+        # Grid configuration for stacked views
+        self.content_area.grid_rowconfigure(0, weight=1)
+        self.content_area.grid_columnconfigure(0, weight=1)
 
+        # App Title in Sidebar
         tk.Label(
             self.sidebar, 
             text="Rental Mobil", 
             font=theme.FONT_LARGE, 
             bg=theme.COLOR_PRIMARY, 
             fg=theme.COLOR_WHITE
-            ).pack(pady=(30,80))
+        ).pack(pady=(30, 80))
 
-        #3, register sub frame
-        self.sub_frames = {}
-        for F in (DashboardPage,MobilPage,PelangganPage,TransaksiPage):
-            page_name =F.__name__
-            frame = F(parent=self.content, controller=self)
-            self.sub_frames[page_name] = frame
+        # 3. Register Views
+        self.views = {}
+        for ViewClass in (DashboardView, MobilView, PelangganView, TransaksiView):
+            view_name = ViewClass.__name__
+            frame = ViewClass(parent=self.content_area, controller=self)
+            self.views[view_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
         
-        #4.menusystem
-        def add_menu(text, view_name):
+        # 4. Sidebar Menu System
+        def create_nav_button(text, target_view):
             btn = tk.Button(
                 self.sidebar, 
                 text=text, 
@@ -52,16 +52,21 @@ class MainLayout(tk.Frame):
                 relief="flat",
                 cursor="hand2",
                 anchor="w",
-                command=lambda: self.show_view(view_name)
-            ).pack(fill="x")
+                command=lambda: self.show_view(target_view)
+            )
+            btn.pack(fill="x")
+            
+            # Hover effects
+            btn.bind("<Enter>", lambda e: btn.configure(bg=theme.COLOR_SECONDARY))
+            btn.bind("<Leave>", lambda e: btn.configure(bg=theme.COLOR_PRIMARY))
 
-        #create object menu
-        add_menu("Dashboard", "DashboardPage")
-        add_menu("Data Mobil", "MobilPage")
-        add_menu("Data Pelanggan", "PelangganPage")
-        add_menu("Data Transaksi", "TransaksiPage")
+        # Create navigation links
+        create_nav_button("Dashboard", "DashboardView")
+        create_nav_button("Data Mobil", "MobilView")
+        create_nav_button("Data Pelanggan", "PelangganView")
+        create_nav_button("Data Transaksi", "TransaksiView")
 
-        #button logout
+        # Logout Button
         tk.Button(
             self.sidebar, 
             text="LOGOUT",     
@@ -73,14 +78,13 @@ class MainLayout(tk.Frame):
             padx=10, 
             pady=10, 
             anchor="w",
-            command=lambda: controller.show_page("LoginPage") 
-            ).pack(side="bottom", fill="x")
+            command=lambda: self.controller.show_page("LoginPage") 
+        ).pack(side="bottom", fill="x")
 
-        #show dashboard
-        self.show_view("DashboardPage")
+        # Initialize Default View
+        self.show_view("DashboardView")
     
-    #show kontent
     def show_view(self, view_name):
-        if view_name in self.sub_frames:
-            frame = self.sub_frames[view_name]
+        if view_name in self.views:
+            frame = self.views[view_name]
             frame.tkraise()
