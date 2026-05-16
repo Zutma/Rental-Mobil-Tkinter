@@ -25,4 +25,4 @@ class LoginPage(tk.Frame):
         self.ent_pass = InputField(self.form_container, show="*", width=35)
         self.ent_pass.pack(fill="x", pady=(5, 30), ipady=10, ipadx=5)
 
-        PrimaryButton(self.form_container, text="LOGIN", command=lambda: self.controller.show_frame("DashboardPage"), width=35).pack(pady=20)
+        PrimaryButton(self.form_container, text="LOGIN", command=lambda: self.controller.show_page("MainLayout"), width=35).pack(pady=20)

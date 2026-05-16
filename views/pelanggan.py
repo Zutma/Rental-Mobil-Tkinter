@@ -1,6 +1,6 @@
 import tkinter as tk
 
-class DashboardPage(tk.Frame):
+class PelangganPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
@@ -9,7 +9,7 @@ class DashboardPage(tk.Frame):
 
         tk.Label(
             self, 
-            text="WELCOME TO DASHBOARD", 
+            text="WELCOME TO PELANGGAN", 
             font=("Arial", 24, "bold"), 
             bg="white", 
             fg="#333333"
