@@ -7,7 +7,13 @@ COLOR_SUCCESS = "#2ECC71"
 COLOR_DANGER = "#E74C3C"     
 COLOR_INFO = "#3498DB"
 
-# Tipografi yang lebih nyaman di mata
-FONT_LARGE = ("Arial", 32, "bold")
-FONT_MEDIUM = ("Arial", 18, "bold") # Naik dari 16
-FONT_NORMAL = ("Arial", 15)         # Naik dari 14
+# FONT HALAMAN UTAMA (Ramping & Proporsional)
+FONT_LARGE  = ("Arial", 24, "bold") 
+FONT_TITLE  = ("Arial", 16, "bold") 
+FONT_MEDIUM = ("Arial", 13, "bold") 
+FONT_NORMAL = ("Arial", 12)          # Saya naikkan sedikit biar gak kekecilan
+FONT_SMALL  = ("Arial", 10, "bold")  # Saya naikkan sedikit dari 9
+
+# FONT KHUSUS LOGIN (Besar & Mantap)
+FONT_LOGIN_TITLE = ("Arial", 32, "bold")
+FONT_LOGIN_LABEL = ("Arial", 15)

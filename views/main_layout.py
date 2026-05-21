@@ -12,44 +12,38 @@ class MainLayout(tk.Frame):
         self.controller = controller
         self.configure(bg=theme.COLOR_WHITE)
 
-        # 1. SIDEBAR CONTAINER
         self.sidebar = tk.Frame(self, bg=theme.COLOR_PRIMARY, width=280)
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        # 2. RIGHT PANEL (Header + Content)
         self.right_panel = tk.Frame(self, bg=theme.COLOR_WHITE)
         self.right_panel.pack(side="right", fill="both", expand=True)
 
-        # 2.a. Top Header
         self.top_header = tk.Frame(self.right_panel, bg=theme.COLOR_WHITE, height=60)
         self.top_header.pack(side="top", fill="x")
         
         tk.Label(
             self.top_header, 
             text="👤 Login sebagai: Administrator", 
-            font=("Arial", 11), 
+            font=theme.FONT_MEDIUM, 
             bg=theme.COLOR_WHITE,
             fg=theme.COLOR_DARK
         ).pack(side="right", padx=30, pady=15)
 
-        # 2.b. Content Area
         self.content_area = tk.Frame(self.right_panel, bg=theme.COLOR_WHITE)
         self.content_area.pack(side="bottom", fill="both", expand=True)
 
         self.content_area.grid_rowconfigure(0, weight=1)
         self.content_area.grid_columnconfigure(0, weight=1)
 
-        # App Title in Sidebar
         tk.Label(
             self.sidebar, 
             text="RENTAL MOBIL", 
-            font=("Arial", 20, "bold"), 
+            font=theme.FONT_LARGE, 
             bg=theme.COLOR_PRIMARY, 
             fg=theme.COLOR_WHITE
         ).pack(pady=(40, 60))
 
-        # 3. REGISTER ALL SUB-VIEWS
         self.views = {}
         target_views = (
             DashboardView, 
@@ -64,12 +58,11 @@ class MainLayout(tk.Frame):
             self.views[view_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # 4. NAVIGATION SYSTEM
         def create_nav_button(text, target_view_name):
             btn = tk.Button(
                 self.sidebar, 
                 text=text.upper(), 
-                font=("Arial", 11, "bold"), 
+                font=theme.FONT_MEDIUM, 
                 bg=theme.COLOR_PRIMARY,
                 fg=theme.COLOR_WHITE,
                 relief="flat",
@@ -80,20 +73,17 @@ class MainLayout(tk.Frame):
                 command=lambda: self.show_view(target_view_name)
             )
             btn.pack(fill="x")
-            # Hover effect dihapus sesuai request
 
-        # Create navigation links
         create_nav_button("Dashboard", "DashboardView")
         create_nav_button("Data Mobil", "CarView")
         create_nav_button("Data Pelanggan", "CustomerView")
         create_nav_button("Data Transaksi", "TransactionView")
         create_nav_button("Data User", "UserView")
 
-        # Logout Button (Sekarang menggunakan warna Oranye / COLOR_PRIMARY)
         tk.Button(
             self.sidebar, 
             text="LOGOUT",     
-            font=("Arial", 11, "bold"), 
+            font=theme.FONT_MEDIUM, 
             bg=theme.COLOR_PRIMARY, 
             fg=theme.COLOR_WHITE, 
             relief="flat", 
@@ -104,7 +94,6 @@ class MainLayout(tk.Frame):
             command=lambda: self.controller.show_page("LoginPage") 
         ).pack(side="bottom", fill="x")
 
-        # Initialize Default View
         self.show_view("DashboardView")
     
     def show_view(self, view_name):

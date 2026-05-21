@@ -11,7 +11,6 @@ class RentalMobilApp(tk.Tk):
         self.geometry("1100x700")
         self.state("zoomed")
 
-        # Container Utama (Grid)
         self.main_container = tk.Frame(self)
         self.main_container.pack(fill="both", expand=True)
 
@@ -20,7 +19,6 @@ class RentalMobilApp(tk.Tk):
 
         self.pages = {}
 
-        # Register Halaman Utama
         for PageClass in (LoginPage, MainLayout):
             page_name = PageClass.__name__
             frame = PageClass(parent=self.main_container, controller=self)
