@@ -1,23 +1,26 @@
 import tkinter as tk
+import theme
 from views.login import LoginPage
 from views.main_layout import MainLayout
-from tkinter import ttk
 
 class RentalMobilApp(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
 
-        self.title("Sistem Rental Mobil")
-        self.state('zoomed')
+        self.title("Rental Mobil")
+        self.geometry("1100x700")
+        self.state("zoomed")
 
+        # Container Utama (Grid)
         self.main_container = tk.Frame(self)
-        self.main_container.pack(side="top", fill="both", expand=True)
+        self.main_container.pack(fill="both", expand=True)
 
         self.main_container.grid_rowconfigure(0, weight=1)
         self.main_container.grid_columnconfigure(0, weight=1)
 
         self.pages = {}
 
+        # Register Halaman Utama
         for PageClass in (LoginPage, MainLayout):
             page_name = PageClass.__name__
             frame = PageClass(parent=self.main_container, controller=self)
@@ -27,8 +30,9 @@ class RentalMobilApp(tk.Tk):
         self.show_page("LoginPage")
 
     def show_page(self, page_name):
-        frame = self.pages[page_name]
-        frame.tkraise()
+        if page_name in self.pages:
+            frame = self.pages[page_name]
+            frame.tkraise()
 
 if __name__ == "__main__":
     app = RentalMobilApp()
