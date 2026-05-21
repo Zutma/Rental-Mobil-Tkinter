@@ -1,7 +1,7 @@
 import tkinter as tk
 import theme
 from tkinter import ttk
-from views.components import PrimaryButton, ActionButton, InputField
+from views.components import PrimaryButton, ActionButton, InputField, FormField
 
 class CarView(tk.Frame):
     def __init__(self, parent, controller):
@@ -26,7 +26,7 @@ class CarView(tk.Frame):
         self.ent_search.pack(side="left", padx=10, ipady=5)
         tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg="white", relief="flat").pack(side="left")
 
-        # Menggunakan ActionButton
+        # Buttons
         self.btn_delete = ActionButton(action_frame, text="HAPUS", color=theme.COLOR_DANGER)
         self.btn_delete.pack(side="right", padx=5)
 
@@ -62,4 +62,22 @@ class CarFormView(tk.Frame):
         super().__init__(parent)
         self.controller = controller
         self.configure(bg=theme.COLOR_WHITE)
+
         tk.Label(self, text="Form Data Mobil", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, anchor="w", padx=20, pady=20).pack(fill="x")
+        container = tk.Frame(self, bg=theme.COLOR_WHITE)
+        container.pack(fill="x", padx=20, pady=10)
+
+        # Kondisi FormField sudah terimpor sekarang
+        self.f_plat     = FormField(container, "Plat Nomor :")
+        self.f_merek    = FormField(container, "Merek :")
+        self.f_tipe     = FormField(container, "Tipe :")
+        self.f_warna    = FormField(container, "Warna :")
+        self.f_tahun    = FormField(container, "Tahun :")
+        self.f_harga    = FormField(container, "Harga Sewa :")
+        self.f_status   = FormField(container, "Status :")
+
+        btn_frame = tk.Frame(self, bg=theme.COLOR_WHITE)
+        btn_frame.pack(fill="x", padx=20, pady=30)
+        
+        PrimaryButton(btn_frame,"SIMPAN", command=lambda: self.controller.show_view("CarView")).pack(side="right", padx=10)
+        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg="white", relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("CarView")).pack(side="right", padx=10)

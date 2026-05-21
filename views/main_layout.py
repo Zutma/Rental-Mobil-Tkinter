@@ -1,10 +1,10 @@
 import tkinter as tk
 import theme
 from views.dashboard import DashboardView
-from views.car import CarView
-from views.customer import CustomerView
-from views.transaction import TransactionView
-from views.user import UserView
+from views.car import CarView, CarFormView
+from views.customer import CustomerView, CustomerFormView
+from views.transaction import TransactionView, TransactionFormView
+from views.user import UserView, UserFormView
 
 class MainLayout(tk.Frame):
     def __init__(self, parent, controller):
@@ -45,12 +45,13 @@ class MainLayout(tk.Frame):
         ).pack(pady=(40, 60))
 
         self.views = {}
+        # Menambahkan semua View & FormView ke dalam sistem navigasi
         target_views = (
             DashboardView, 
-            CarView, 
-            CustomerView, 
-            TransactionView, 
-            UserView
+            CarView, CarFormView,
+            CustomerView, CustomerFormView,
+            TransactionView, TransactionFormView,
+            UserView, UserFormView
         )
         for ViewClass in target_views:
             view_name = ViewClass.__name__

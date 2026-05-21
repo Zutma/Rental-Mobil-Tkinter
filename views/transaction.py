@@ -1,7 +1,7 @@
 import tkinter as tk
 import theme
 from tkinter import ttk
-from views.components import PrimaryButton, ActionButton, InputField
+from views.components import PrimaryButton, ActionButton, InputField, FormField
 
 class TransactionView(tk.Frame):
     def __init__(self, parent, controller):
@@ -29,10 +29,10 @@ class TransactionView(tk.Frame):
         self.btn_delete = ActionButton(action_frame, text="HAPUS", color=theme.COLOR_DANGER)
         self.btn_delete.pack(side="right", padx=5)
 
-        self.btn_edit = ActionButton(action_frame, text="EDIT", color=theme.COLOR_INFO)
+        self.btn_edit = ActionButton(action_frame, text="EDIT", color=theme.COLOR_INFO, command=lambda: self.controller.show_view("TransactionFormView"))
         self.btn_edit.pack(side="right", padx=5)
 
-        PrimaryButton(action_frame, text="+ TAMBAH").pack(side="right", padx=5)
+        PrimaryButton(action_frame, text="+ TAMBAH", command=lambda: self.controller.show_view("TransactionFormView")).pack(side="right", padx=5)
 
         table_frame = tk.Frame(content_frame, bg="white")
         table_frame.pack(fill="both", expand=True, pady=(0, 20))
@@ -55,3 +55,27 @@ class TransactionView(tk.Frame):
         is_active = True if selected else False
         self.btn_edit.update_style(is_active)
         self.btn_delete.update_style(is_active)
+
+class TransactionFormView(tk.Frame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+        self.configure(bg=theme.COLOR_WHITE)
+
+        tk.Label(self, text="Form Data Transaksi", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, anchor="w", padx=20, pady=20).pack(fill="x")
+        container = tk.Frame(self, bg=theme.COLOR_WHITE)
+        container.pack(fill="x", padx=20, pady=10)
+
+        self.f_pelanggan = FormField(container, "Pelanggan :")
+        self.f_mobil     = FormField(container, "Mobil :")
+        self.f_pinjam    = FormField(container, "Tgl. Pinjam :")
+        self.f_kembali   = FormField(container, "Tgl. Kembali :")
+        self.f_jaminan   = FormField(container, "Jaminan :")
+        self.f_total     = FormField(container, "Total Harga :")
+        self.f_status    = FormField(container, "Status :")
+
+        btn_frame = tk.Frame(self, bg=theme.COLOR_WHITE)
+        btn_frame.pack(fill="x", padx=20, pady=30)
+        
+        PrimaryButton(btn_frame, "SIMPAN", command=lambda: self.controller.show_view("TransactionView")).pack(side="right", padx=10)
+        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg="white", relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("TransactionView")).pack(side="right", padx=10)
