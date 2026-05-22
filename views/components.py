@@ -1,5 +1,7 @@
 import theme
 import tkinter as tk
+from tkinter import ttk
+from tkcalendar import DateEntry
 
 class PrimaryButton(tk.Button):
     def __init__(self, parent, text, command=None, **kwargs):
@@ -78,3 +80,57 @@ class FormField:
         self.entry.delete(0, tk.END)
         self.entry.insert(0, val)
     def clear(self): self.entry.delete(0, tk.END)
+
+class DropdownField:
+    def __init__(self, parent, label_text, values=None):
+        self.frame = tk.Frame(parent, bg=theme.COLOR_WHITE)
+        self.frame.pack(fill="x", pady=8)
+
+        tk.Label(self.frame, text=label_text, font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE, width=15, anchor="w").pack(side="left")
+        self.var = tk.StringVar()
+        self.combo = ttk.Combobox(self.frame, textvariable=self.var, font=theme.FONT_NORMAL, state="readonly")
+        if values:
+            self.combo["values"] = values
+        self.combo.pack(side="left", fill="x", expand=True, ipady=5)
+        self._map = {}
+
+    def set_values(self, display_list, map_dict=None):
+        self.combo["values"] = display_list
+        self._map = map_dict or {}
+        self.var.set("")
+
+    def get(self): return self.var.get()
+
+    def get_id(self):
+        return self._map.get(self.var.get())
+
+    def set(self, val): self.var.set(val)
+
+    def clear(self): self.var.set("")
+
+    def bind(self, event, handler):
+        self.combo.bind(event, handler)
+
+class DateField:
+    def __init__(self, parent, label_text):
+        self.frame = tk.Frame(parent, bg=theme.COLOR_WHITE)
+        self.frame.pack(fill="x", pady=8)
+
+        tk.Label(self.frame, text=label_text, font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE, width=15, anchor="w").pack(side="left")
+        self.entry = DateEntry(self.frame, font=theme.FONT_NORMAL, date_pattern="yyyy-mm-dd",
+                               background=theme.COLOR_PRIMARY, foreground="white",
+                               headersbackground=theme.COLOR_PRIMARY, headersforeground="white",
+                               selectbackground=theme.COLOR_SECONDARY, selectforeground="white",
+                               borderwidth=1, width=20)
+        self.entry.pack(side="left", fill="x", expand=True, ipady=5)
+        self.entry.delete(0, tk.END)
+
+    def get(self): return self.entry.get()
+
+    def set(self, val):
+        self.entry.delete(0, tk.END)
+        if val:
+            self.entry.insert(0, str(val))
+
+    def clear(self):
+        self.entry.delete(0, tk.END)

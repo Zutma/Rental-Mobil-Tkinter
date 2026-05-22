@@ -1,6 +1,8 @@
 import theme
 import tkinter as tk
+from tkinter import messagebox
 from views.components import *
+from database.db_helper import authenticate
 
 class LoginPage(tk.Frame):
     def __init__(self, parent,controller):
@@ -25,12 +27,29 @@ class LoginPage(tk.Frame):
         self.ent_pass = InputField(self.form_container, show="*", width=35)
         self.ent_pass.pack(fill="x", pady=(5, 30), ipady=10, ipadx=5)
 
-        # Padding saya kurangi dari 15 ke 10 agar lebih ramping (langsing)
         PrimaryButton(
             self.form_container, 
             text="LOGIN", 
-            command=lambda: self.controller.show_page("MainLayout"), 
+            command=self.do_login, 
             width=35,
             font=theme.FONT_LOGIN_LABEL,
             pady=10 
         ).pack(pady=20)
+
+        self.ent_user.bind("<Return>", lambda e: self.do_login())
+        self.ent_pass.bind("<Return>", lambda e: self.do_login())
+
+    def do_login(self):
+        username = self.ent_user.get().strip()
+        password = self.ent_pass.get().strip()
+        if not username or not password:
+            messagebox.showwarning("Peringatan", "Username dan Password harus diisi!")
+            return
+        user = authenticate(username, password)
+        if user:
+            self.controller.current_user = user
+            self.ent_user.delete(0, tk.END)
+            self.ent_pass.delete(0, tk.END)
+            self.controller.show_page("MainLayout")
+        else:
+            messagebox.showerror("Gagal", "Username atau Password salah!")

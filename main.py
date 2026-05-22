@@ -2,6 +2,7 @@ import tkinter as tk
 import theme
 from views.login import LoginPage
 from views.main_layout import MainLayout
+from database.setup_database import setup_all_tables
 
 class RentalMobilApp(tk.Tk):
     def __init__(self):
@@ -10,6 +11,10 @@ class RentalMobilApp(tk.Tk):
         self.title("Rental Mobil")
         self.geometry("1100x700")
         self.state("zoomed")
+
+        self.current_user = None
+
+        setup_all_tables()
 
         self.main_container = tk.Frame(self)
         self.main_container.pack(fill="both", expand=True)
@@ -31,6 +36,8 @@ class RentalMobilApp(tk.Tk):
         if page_name in self.pages:
             frame = self.pages[page_name]
             frame.tkraise()
+            if page_name == "MainLayout" and self.current_user:
+                frame.setup_for_role(self.current_user)
 
 if __name__ == "__main__":
     app = RentalMobilApp()

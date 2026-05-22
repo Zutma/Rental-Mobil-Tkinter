@@ -22,13 +22,14 @@ class MainLayout(tk.Frame):
         self.top_header = tk.Frame(self.right_panel, bg=theme.COLOR_WHITE, height=60)
         self.top_header.pack(side="top", fill="x")
         
-        tk.Label(
+        self.lbl_user_info = tk.Label(
             self.top_header, 
             text="👤 Login sebagai: Administrator", 
             font=theme.FONT_MEDIUM, 
             bg=theme.COLOR_WHITE,
             fg=theme.COLOR_DARK
-        ).pack(side="right", padx=30, pady=15)
+        )
+        self.lbl_user_info.pack(side="right", padx=30, pady=15)
 
         self.content_area = tk.Frame(self.right_panel, bg=theme.COLOR_WHITE)
         self.content_area.pack(side="bottom", fill="both", expand=True)
@@ -45,7 +46,6 @@ class MainLayout(tk.Frame):
         ).pack(pady=(40, 60))
 
         self.views = {}
-        # Menambahkan semua View & FormView ke dalam sistem navigasi
         target_views = (
             DashboardView, 
             CarView, CarFormView,
@@ -58,6 +58,8 @@ class MainLayout(tk.Frame):
             frame = ViewClass(parent=self.content_area, controller=self)
             self.views[view_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
+
+        self.nav_buttons = {}
 
         def create_nav_button(text, target_view_name):
             btn = tk.Button(
@@ -74,6 +76,7 @@ class MainLayout(tk.Frame):
                 command=lambda: self.show_view(target_view_name)
             )
             btn.pack(fill="x")
+            self.nav_buttons[target_view_name] = btn
 
         create_nav_button("Dashboard", "DashboardView")
         create_nav_button("Data Mobil", "CarView")
@@ -81,7 +84,7 @@ class MainLayout(tk.Frame):
         create_nav_button("Data Transaksi", "TransactionView")
         create_nav_button("Data User", "UserView")
 
-        tk.Button(
+        self.btn_logout = tk.Button(
             self.sidebar, 
             text="LOGOUT",     
             font=theme.FONT_MEDIUM, 
@@ -92,12 +95,46 @@ class MainLayout(tk.Frame):
             padx=20, 
             pady=15, 
             anchor="w",
-            command=lambda: self.controller.show_page("LoginPage") 
-        ).pack(side="bottom", fill="x")
+            command=self.do_logout
+        )
+        self.btn_logout.pack(side="bottom", fill="x")
 
         self.show_view("DashboardView")
+
+    def do_logout(self):
+        self.controller.current_user = None
+        self.controller.show_page("LoginPage")
+
+    def setup_for_role(self, user):
+        role = user.get("role", "petugas")
+        name = user.get("name", "User")
+        role_display = "Administrator" if role == "admin" else "Petugas"
+        self.lbl_user_info.config(text=f"👤 Login sebagai: {role_display} ({name})")
+
+        admin_only = ["CarView", "UserView"]
+        for view_name in admin_only:
+            if view_name in self.nav_buttons:
+                if role == "admin":
+                    self.nav_buttons[view_name].pack(fill="x")
+                else:
+                    self.nav_buttons[view_name].pack_forget()
+
+        if role != "admin":
+            self._reorder_nav()
+
+        self.show_view("DashboardView")
+
+    def _reorder_nav(self):
+        for key in ["DashboardView", "CustomerView", "TransactionView"]:
+            if key in self.nav_buttons:
+                self.nav_buttons[key].pack_forget()
+        for key in ["DashboardView", "CustomerView", "TransactionView"]:
+            if key in self.nav_buttons:
+                self.nav_buttons[key].pack(fill="x")
     
     def show_view(self, view_name):
         if view_name in self.views:
             frame = self.views[view_name]
             frame.tkraise()
+            if hasattr(frame, "refresh_data"):
+                frame.refresh_data()

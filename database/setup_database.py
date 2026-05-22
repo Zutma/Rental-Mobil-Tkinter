@@ -15,13 +15,22 @@ def create_db_connection():
         return None
 
 def setup_all_tables():
+    try:
+        conn = mysql.connector.connect(host="localhost", user="root", password="")
+        cursor = conn.cursor()
+        cursor.execute("CREATE DATABASE IF NOT EXISTS db_rental_mobil")
+        cursor.close()
+        conn.close()
+    except Error as e:
+        print(f"Gagal membuat database: {e}")
+        return
+
     conn = create_db_connection()
     if not conn:
         return
 
     cursor = conn.cursor()
 
-    # Daftar query untuk membuat tabel (Urutan sangat menentukan!)
     tables = {
         "users": """
             CREATE TABLE IF NOT EXISTS users (
@@ -52,6 +61,7 @@ def setup_all_tables():
                 plate_number VARCHAR(20) UNIQUE NOT NULL,
                 color VARCHAR(50),
                 year INT,
+                rental_price DECIMAL(12, 2) DEFAULT 0,
                 status ENUM('available', 'rented', 'maintenance') DEFAULT 'available',
                 FOREIGN KEY (type_id) REFERENCES types(id) ON DELETE CASCADE
             )
@@ -101,18 +111,24 @@ def setup_all_tables():
         """
     }
 
-    # Jalankan pembuatan tabel satu per satu
     for table_name, query in tables.items():
         try:
             cursor.execute(query)
-            print(f"Tabel '{table_name}' siap!")
         except Error as e:
             print(f"Gagal membuat tabel {table_name}: {e}")
 
-    conn.commit() # Simpan perubahan
+    try:
+        cursor.execute("ALTER TABLE cars ADD COLUMN rental_price DECIMAL(12,2) DEFAULT 0 AFTER year")
+    except:
+        pass
+
+    cursor.execute("SELECT COUNT(*) FROM users")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("INSERT INTO users (name, password, role) VALUES ('admin', 'admin123', 'admin')")
+
+    conn.commit()
     cursor.close()
     conn.close()
-    print("\n--- SEMUA TABEL BERHASIL DIBUAT ---")
 
 if __name__ == "__main__":
     setup_all_tables()
