@@ -49,16 +49,16 @@ class DashboardView(tk.Frame):
         stats_frame.columnconfigure(0, weight=1)
         stats_frame.columnconfigure(1, weight=1)
 
-        self.card_mobil = InfoCard(stats_frame, "Jumlah Mobil", "0", theme.COLOR_INFO)
+        self.card_mobil = InfoCard(stats_frame, "Jumlah Mobil", "0", theme.COLOR_GRAY)
         self.card_mobil.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.card_pelanggan = InfoCard(stats_frame, "Jumlah Pelanggan", "0", theme.COLOR_SUCCESS)
+        self.card_pelanggan = InfoCard(stats_frame, "Jumlah Pelanggan", "0", theme.COLOR_GRAY)
         self.card_pelanggan.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.card_transaksi = InfoCard(stats_frame, "Jumlah Pesanan", "0", theme.COLOR_PRIMARY)
+        self.card_transaksi = InfoCard(stats_frame, "Jumlah Pesanan", "0", theme.COLOR_GRAY)
         self.card_transaksi.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-        self.card_user = InfoCard(stats_frame, "Jumlah User", "0", theme.COLOR_DANGER)
+        self.card_user = InfoCard(stats_frame, "Jumlah User", "0", theme.COLOR_GRAY)
         self.card_user.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
         tk.Frame(self, bg=theme.COLOR_WHITE, height=30).pack()

@@ -5,6 +5,8 @@ from views.car import CarView, CarFormView
 from views.customer import CustomerView, CustomerFormView
 from views.transaction import TransactionView, TransactionFormView
 from views.user import UserView, UserFormView
+from views.brand import BrandView, BrandFormView
+from views.car_type import CarTypeView, CarTypeFormView
 
 class MainLayout(tk.Frame):
     def __init__(self, parent, controller):
@@ -47,7 +49,9 @@ class MainLayout(tk.Frame):
 
         self.views = {}
         target_views = (
-            DashboardView, 
+            DashboardView,
+            BrandView, BrandFormView,
+            CarTypeView, CarTypeFormView,
             CarView, CarFormView,
             CustomerView, CustomerFormView,
             TransactionView, TransactionFormView,
@@ -60,6 +64,7 @@ class MainLayout(tk.Frame):
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.nav_buttons = {}
+        self._sidebar_items = []
 
         def create_nav_button(text, target_view_name):
             btn = tk.Button(
@@ -75,14 +80,33 @@ class MainLayout(tk.Frame):
                 pady=15, 
                 command=lambda: self.show_view(target_view_name)
             )
-            btn.pack(fill="x")
             self.nav_buttons[target_view_name] = btn
+            return btn
 
-        create_nav_button("Dashboard", "DashboardView")
-        create_nav_button("Data Mobil", "CarView")
-        create_nav_button("Data Pelanggan", "CustomerView")
-        create_nav_button("Data Transaksi", "TransactionView")
-        create_nav_button("Data User", "UserView")
+        def create_section_label(text):
+            return tk.Label(
+                self.sidebar,
+                text=text.upper(),
+                font=("Arial", 8, "bold"),
+                bg=theme.COLOR_PRIMARY,
+                fg=theme.COLOR_WHITE,
+                anchor="center",
+                pady=4
+            )
+
+        def add_item(widget, admin_only=False):
+            self._sidebar_items.append((widget, admin_only))
+            widget.pack(fill="x")
+
+        add_item(create_nav_button("Dashboard", "DashboardView"))
+        add_item(create_section_label("---------------------------------------------------------------------------------"), True)
+        add_item(create_nav_button("Data Merek", "BrandView"), True)
+        add_item(create_nav_button("Data Tipe", "CarTypeView"), True)
+        add_item(create_section_label("---------------------------------------------------------------------------------"))
+        add_item(create_nav_button("Data Mobil", "CarView"))
+        add_item(create_nav_button("Data Pelanggan", "CustomerView"))
+        add_item(create_nav_button("Data Transaksi", "TransactionView"))
+        add_item(create_nav_button("Data User", "UserView"), True)
 
         self.btn_logout = tk.Button(
             self.sidebar, 
@@ -111,26 +135,18 @@ class MainLayout(tk.Frame):
         role_display = "Administrator" if role == "admin" else "Petugas"
         self.lbl_user_info.config(text=f"👤 Login sebagai: {role_display} ({name})")
 
-        admin_only = ["CarView", "UserView"]
-        for view_name in admin_only:
-            if view_name in self.nav_buttons:
-                if role == "admin":
-                    self.nav_buttons[view_name].pack(fill="x")
-                else:
-                    self.nav_buttons[view_name].pack_forget()
+        for widget, _ in self._sidebar_items:
+            widget.pack_forget()
+        for widget, admin_only in self._sidebar_items:
+            if admin_only and role != "admin":
+                continue
+            widget.pack(fill="x")
 
-        if role != "admin":
-            self._reorder_nav()
+        car_view = self.views.get("CarView")
+        if car_view and hasattr(car_view, "setup_role"):
+            car_view.setup_role(role)
 
         self.show_view("DashboardView")
-
-    def _reorder_nav(self):
-        for key in ["DashboardView", "CustomerView", "TransactionView"]:
-            if key in self.nav_buttons:
-                self.nav_buttons[key].pack_forget()
-        for key in ["DashboardView", "CustomerView", "TransactionView"]:
-            if key in self.nav_buttons:
-                self.nav_buttons[key].pack(fill="x")
     
     def show_view(self, view_name):
         if view_name in self.views:

@@ -22,13 +22,16 @@ def get_dashboard_stats():
     conn.close()
     return stats
 
-# ==================== BRANDS & TYPES ====================
+# ==================== BRANDS ====================
 
-def get_brands():
+def get_brands(search=""):
     conn = create_db_connection()
     if not conn: return []
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM brands ORDER BY name")
+    if search:
+        cursor.execute("SELECT * FROM brands WHERE name LIKE %s ORDER BY name", (f"%{search}%",))
+    else:
+        cursor.execute("SELECT * FROM brands ORDER BY name")
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -44,6 +47,43 @@ def add_brand(name):
     cursor.close()
     conn.close()
     return brand_id
+
+def update_brand(brand_id, name):
+    conn = create_db_connection()
+    if not conn: return
+    cursor = conn.cursor()
+    cursor.execute("UPDATE brands SET name=%s WHERE id=%s", (name, brand_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def delete_brand(brand_id):
+    conn = create_db_connection()
+    if not conn: return
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM brands WHERE id=%s", (brand_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# ==================== TYPES ====================
+
+def get_all_types(search=""):
+    conn = create_db_connection()
+    if not conn: return []
+    cursor = conn.cursor(dictionary=True)
+    q = """SELECT t.id, t.name, t.brand_id, b.name AS brand_name
+           FROM types t JOIN brands b ON t.brand_id = b.id"""
+    if search:
+        q += " WHERE t.name LIKE %s OR b.name LIKE %s"
+        s = f"%{search}%"
+        cursor.execute(q + " ORDER BY b.name, t.name", (s, s))
+    else:
+        cursor.execute(q + " ORDER BY b.name, t.name")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
 
 def get_types_by_brand(brand_id):
     conn = create_db_connection()
@@ -65,6 +105,24 @@ def add_type(brand_id, name):
     cursor.close()
     conn.close()
     return type_id
+
+def update_type(type_id, brand_id, name):
+    conn = create_db_connection()
+    if not conn: return
+    cursor = conn.cursor()
+    cursor.execute("UPDATE types SET brand_id=%s, name=%s WHERE id=%s", (brand_id, name, type_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def delete_type(type_id):
+    conn = create_db_connection()
+    if not conn: return
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM types WHERE id=%s", (type_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 # ==================== CARS ====================
 
@@ -106,6 +164,15 @@ def update_car(car_id, type_id, plate_number, color, year, rental_price, status)
     cursor.execute(
         "UPDATE cars SET type_id=%s, plate_number=%s, color=%s, year=%s, rental_price=%s, status=%s WHERE id=%s",
         (type_id, plate_number, color, year, rental_price, status, car_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def update_car_status(car_id, status):
+    conn = create_db_connection()
+    if not conn: return
+    cursor = conn.cursor()
+    cursor.execute("UPDATE cars SET status=%s WHERE id=%s", (status, car_id))
     conn.commit()
     cursor.close()
     conn.close()
@@ -172,7 +239,7 @@ def get_all_transactions(search=""):
     cursor = conn.cursor(dictionary=True)
     q = """SELECT tr.id, cust.name AS customer_name, cust.id AS customer_id,
            CONCAT(b.name,' ',t.name,' - ',c.plate_number) AS car_label, c.id AS car_id,
-           tr.pickup_date, tr.return_date, tr.guarantee_item, tr.total_price, tr.status
+           tr.pickup_date, tr.return_date, tr.guarantee_item, tr.total_price, tr.status, tr.payment_method
            FROM transactions tr
            JOIN customers cust ON tr.customer_id = cust.id
            JOIN cars c ON tr.car_id = c.id
@@ -193,7 +260,7 @@ def get_available_cars():
     conn = create_db_connection()
     if not conn: return []
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("""SELECT c.id, CONCAT(b.name,' ',t.name,' - ',c.plate_number) AS label
+    cursor.execute("""SELECT c.id, c.rental_price, CONCAT(b.name,' ',t.name,' - ',c.plate_number) AS label
                       FROM cars c JOIN types t ON c.type_id=t.id JOIN brands b ON t.brand_id=b.id
                       WHERE c.status='available' ORDER BY b.name""")
     rows = cursor.fetchall()
@@ -205,7 +272,7 @@ def get_car_by_id(car_id):
     conn = create_db_connection()
     if not conn: return None
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("""SELECT c.id, CONCAT(b.name,' ',t.name,' - ',c.plate_number) AS label
+    cursor.execute("""SELECT c.id, c.rental_price, CONCAT(b.name,' ',t.name,' - ',c.plate_number) AS label
                       FROM cars c JOIN types t ON c.type_id=t.id JOIN brands b ON t.brand_id=b.id
                       WHERE c.id=%s""", (car_id,))
     row = cursor.fetchone()
@@ -213,26 +280,26 @@ def get_car_by_id(car_id):
     conn.close()
     return row
 
-def add_transaction(customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status):
+def add_transaction(customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, payment_method):
     conn = create_db_connection()
     if not conn: return
     cursor = conn.cursor()
     cursor.execute(
-        """INSERT INTO transactions (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status)
-           VALUES (%s,%s,%s,%s,%s,%s,%s)""",
-        (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status))
+        """INSERT INTO transactions (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, payment_method)
+           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)""",
+        (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, payment_method))
     conn.commit()
     cursor.close()
     conn.close()
 
-def update_transaction(trans_id, customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status):
+def update_transaction(trans_id, customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, payment_method):
     conn = create_db_connection()
     if not conn: return
     cursor = conn.cursor()
     cursor.execute(
         """UPDATE transactions SET customer_id=%s, car_id=%s, pickup_date=%s, return_date=%s,
-           guarantee_item=%s, total_price=%s, status=%s WHERE id=%s""",
-        (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, trans_id))
+           guarantee_item=%s, total_price=%s, status=%s, payment_method=%s WHERE id=%s""",
+        (customer_id, car_id, pickup_date, return_date, guarantee_item, total_price, status, payment_method, trans_id))
     conn.commit()
     cursor.close()
     conn.close()

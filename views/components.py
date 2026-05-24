@@ -1,6 +1,7 @@
 import theme
 import tkinter as tk
 from tkinter import ttk
+from datetime import date as date_cls, datetime as datetime_cls
 from tkcalendar import DateEntry
 
 class PrimaryButton(tk.Button):
@@ -76,10 +77,33 @@ class FormField:
         self.entry.pack(side="left", fill="x", expand=True, ipady=5)
 
     def get(self): return self.entry.get()
+    
     def set(self, val):
+        state = self.entry.cget("state")
+        if state == "readonly":
+            self.entry.config(state="normal")
+            
         self.entry.delete(0, tk.END)
         self.entry.insert(0, val)
-    def clear(self): self.entry.delete(0, tk.END)
+        
+        if state == "readonly":
+            self.entry.config(state="readonly")
+            
+    def clear(self):
+        state = self.entry.cget("state")
+        if state == "readonly":
+            self.entry.config(state="normal")
+            
+        self.entry.delete(0, tk.END)
+        
+        if state == "readonly":
+            self.entry.config(state="readonly")
+
+    def set_readonly(self, is_readonly=True):
+        if is_readonly:
+            self.entry.config(state="readonly", bg="#F0F0F0")
+        else:
+            self.entry.config(state="normal", bg=theme.COLOR_WHITE)
 
 class DropdownField:
     def __init__(self, parent, label_text, values=None):
@@ -100,16 +124,10 @@ class DropdownField:
         self.var.set("")
 
     def get(self): return self.var.get()
-
-    def get_id(self):
-        return self._map.get(self.var.get())
-
+    def get_id(self): return self._map.get(self.var.get())
     def set(self, val): self.var.set(val)
-
     def clear(self): self.var.set("")
-
-    def bind(self, event, handler):
-        self.combo.bind(event, handler)
+    def bind(self, event, handler): self.combo.bind(event, handler)
 
 class DateField:
     def __init__(self, parent, label_text):
@@ -123,14 +141,28 @@ class DateField:
                                selectbackground=theme.COLOR_SECONDARY, selectforeground="white",
                                borderwidth=1, width=20)
         self.entry.pack(side="left", fill="x", expand=True, ipady=5)
-        self.entry.delete(0, tk.END)
 
     def get(self): return self.entry.get()
 
     def set(self, val):
-        self.entry.delete(0, tk.END)
         if val:
-            self.entry.insert(0, str(val))
+            try:
+                if isinstance(val, date_cls):
+                    self.entry.set_date(val)
+                elif isinstance(val, str) and val:
+                    d = datetime_cls.strptime(val, "%Y-%m-%d").date()
+                    self.entry.set_date(d)
+            except:
+                pass
 
     def clear(self):
-        self.entry.delete(0, tk.END)
+        self.entry.set_date(date_cls.today())
+
+    def set_mindate(self, d):
+        self.entry.configure(mindate=d)
+
+    def clear_mindate(self):
+        self.entry.configure(mindate=None)
+
+    def bind(self, event, handler):
+        self.entry.bind(event, handler)

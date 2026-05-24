@@ -34,7 +34,8 @@ class CarView(tk.Frame):
         self.btn_edit = ActionButton(action_frame, text="EDIT", color=theme.COLOR_INFO, command=self.do_edit)
         self.btn_edit.pack(side="right", padx=5)
 
-        PrimaryButton(action_frame, text="+ TAMBAH", command=self.do_add).pack(side="right", padx=5)
+        self.btn_add = PrimaryButton(action_frame, text="+ TAMBAH", command=self.do_add)
+        self.btn_add.pack(side="right", padx=5)
 
         table_frame = tk.Frame(content_frame, bg="white")
         table_frame.pack(fill="both", expand=True, pady=(0, 20))
@@ -59,6 +60,15 @@ class CarView(tk.Frame):
         is_active = True if selected else False
         self.btn_edit.update_style(is_active)
         self.btn_delete.update_style(is_active)
+
+    def setup_role(self, role):
+        self.btn_add.pack_forget()
+        self.btn_edit.pack_forget()
+        self.btn_delete.pack_forget()
+        if role == "admin":
+            self.btn_delete.pack(side="right", padx=5)
+            self.btn_edit.pack(side="right", padx=5)
+            self.btn_add.pack(side="right", padx=5)
 
     def refresh_data(self):
         for item in self.table.get_children():
@@ -91,7 +101,6 @@ class CarView(tk.Frame):
     def do_edit(self):
         selected = self.table.selection()
         if not selected: return
-        item = self.table.item(selected[0])
         idx = self.table.index(selected[0])
         car_id = self._car_ids[idx]
         rows = get_all_cars()
@@ -127,8 +136,7 @@ class CarFormView(tk.Frame):
         self._mode = "add"
         self._edit_id = None
 
-        self.lbl_title = tk.Label(self, text="Form Data Mobil", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, anchor="w", padx=20, pady=20)
-        self.lbl_title.pack(fill="x")
+        tk.Label(self, text="Form Data Mobil", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, anchor="w", padx=20, pady=20).pack(fill="x")
         container = tk.Frame(self, bg=theme.COLOR_WHITE)
         container.pack(fill="x", padx=20, pady=10)
 
@@ -153,7 +161,6 @@ class CarFormView(tk.Frame):
         names = [b["name"] for b in brands]
         mapping = {b["name"]: b["id"] for b in brands}
         self.f_merek.set_values(names, mapping)
-        return brands
 
     def _on_brand_change(self, event=None):
         brand_id = self.f_merek.get_id()
