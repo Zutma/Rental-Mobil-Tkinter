@@ -3,9 +3,9 @@ import theme
 from datetime import date, datetime
 from tkinter import ttk, messagebox
 from views.components import PrimaryButton, ActionButton, InputField, FormField, DropdownField, DateField
-from database.db_helper import (get_all_transactions, add_transaction, update_transaction,
-                                 delete_transaction, get_all_customers, get_available_cars,
-                                 get_car_by_id, update_car_status)
+from database.transaction import get_all_transactions, add_transaction, update_transaction, delete_transaction,  get_available_cars, get_car_by_id
+from database.customer import get_all_customers
+from database.car import update_car_status
 
 class TransactionView(tk.Frame):
     def __init__(self, parent, controller):

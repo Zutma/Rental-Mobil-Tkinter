@@ -2,7 +2,8 @@ import tkinter as tk
 import theme
 from tkinter import ttk, messagebox
 from views.components import PrimaryButton, ActionButton, InputField, FormField, DropdownField
-from database.db_helper import get_all_types, get_brands, add_type, update_type, delete_type
+from database.car_type import get_all_types, add_type, update_type, delete_type
+from database.brand import get_brands, add_brand, update_brand, delete_brand
 
 class CarTypeView(tk.Frame):
     def __init__(self, parent, controller):

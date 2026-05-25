@@ -2,7 +2,7 @@ import tkinter as tk
 import theme
 from tkinter import ttk, messagebox
 from views.components import PrimaryButton, ActionButton, InputField, FormField
-from database.db_helper import get_brands, add_brand, update_brand, delete_brand
+from database.brand import get_brands, add_brand, update_brand, delete_brand
 
 class BrandView(tk.Frame):
     def __init__(self, parent, controller):

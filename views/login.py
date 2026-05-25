@@ -2,7 +2,7 @@ import theme
 import tkinter as tk
 from tkinter import messagebox
 from views.components import *
-from database.db_helper import authenticate
+from database.auth import authenticate
 
 class LoginPage(tk.Frame):
     def __init__(self, parent,controller):

@@ -2,7 +2,7 @@ import tkinter as tk
 import theme
 from tkinter import ttk, messagebox
 from views.components import PrimaryButton, ActionButton, InputField, FormField, DropdownField
-from database.db_helper import get_all_users, add_user, update_user, delete_user
+from database.user import get_all_users, add_user, update_user, delete_user
 
 class UserView(tk.Frame):
     def __init__(self, parent, controller):

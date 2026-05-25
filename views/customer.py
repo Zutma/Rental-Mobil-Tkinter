@@ -2,7 +2,7 @@ import tkinter as tk
 import theme
 from tkinter import ttk, messagebox
 from views.components import PrimaryButton, ActionButton, InputField, FormField
-from database.db_helper import get_all_customers, add_customer, update_customer, delete_customer
+from database.customer import get_all_customers, add_customer, update_customer, delete_customer
 
 class CustomerView(tk.Frame):
     def __init__(self, parent, controller):

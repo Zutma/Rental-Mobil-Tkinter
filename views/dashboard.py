@@ -1,6 +1,6 @@
 import tkinter as tk
 import theme
-from database.db_helper import get_dashboard_stats
+from database.dashboard import get_dashboard_stats
 
 class InfoCard(tk.Frame):
     def __init__(self, parent, title, value, color):

@@ -1,8 +1,6 @@
 import tkinter as tk
-import theme
 from views.login import LoginPage
 from views.main_layout import MainLayout
-from database.setup_database import setup_all_tables
 
 class RentalMobilApp(tk.Tk):
     def __init__(self):
@@ -13,8 +11,6 @@ class RentalMobilApp(tk.Tk):
         self.state("zoomed")
 
         self.current_user = None
-
-        setup_all_tables()
 
         self.main_container = tk.Frame(self)
         self.main_container.pack(fill="both", expand=True)
