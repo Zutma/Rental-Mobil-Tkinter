@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import theme
 from views.dashboard import DashboardView
 from views.car import CarView, CarFormView
@@ -126,8 +127,9 @@ class MainLayout(tk.Frame):
         self.show_view("DashboardView")
 
     def do_logout(self):
-        self.controller.current_user = None
-        self.controller.show_page("LoginPage")
+        if messagebox.askyesno("Konfirmasi Logout", "Apakah Anda yakin ingin keluar dari aplikasi?"):
+            self.controller.current_user = None
+            self.controller.show_page("LoginPage")
 
     def setup_for_role(self, user):
         role = user.get("role", "petugas")

@@ -5,7 +5,8 @@ def get_all_cars(search=""):
     if not conn: return []
     cursor = conn.cursor(dictionary=True)
     q = """SELECT c.id, c.plate_number, b.name AS brand, t.name AS type, c.color, c.year,
-           c.rental_price, c.status, c.type_id, t.brand_id
+           c.rental_price, c.status, c.type_id, t.brand_id,
+           (SELECT COUNT(*) FROM cars c2 JOIN types t2 ON c2.type_id = t2.id WHERE t2.brand_id = t.brand_id) AS brand_count
            FROM cars c
            JOIN types t ON c.type_id = t.id
            JOIN brands b ON t.brand_id = b.id"""

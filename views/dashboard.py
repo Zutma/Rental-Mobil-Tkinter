@@ -1,6 +1,8 @@
+import theme
 import tkinter as tk
 import theme
-from database.dashboard import get_dashboard_stats
+from tkinter import ttk
+from database.dashboard import get_dashboard_stats, get_rented_cars
 
 class InfoCard(tk.Frame):
     def __init__(self, parent, title, value, color):
@@ -12,7 +14,7 @@ class InfoCard(tk.Frame):
             text=title.upper(), 
             font=theme.FONT_TITLE, 
             bg=color, 
-            fg="white"
+            fg=theme.COLOR_DARK
         ).pack(anchor="w", padx=30, pady=(45, 0))
         
         self.lbl_value = tk.Label(
@@ -20,7 +22,7 @@ class InfoCard(tk.Frame):
             text=str(value), 
             font=theme.FONT_TITLE, 
             bg=color, 
-            fg="white"
+            fg=theme.COLOR_DARK
         )
         self.lbl_value.pack(anchor="w", padx=30, pady=(5, 45))
 
@@ -55,13 +57,35 @@ class DashboardView(tk.Frame):
         self.card_pelanggan = InfoCard(stats_frame, "Jumlah Pelanggan", "0", theme.COLOR_GRAY)
         self.card_pelanggan.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.card_transaksi = InfoCard(stats_frame, "Jumlah Pesanan", "0", theme.COLOR_GRAY)
+        self.card_transaksi = InfoCard(stats_frame, "Jumlah Transaksi", "0", theme.COLOR_GRAY)
         self.card_transaksi.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
         self.card_user = InfoCard(stats_frame, "Jumlah User", "0", theme.COLOR_GRAY)
         self.card_user.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
-        tk.Frame(self, bg=theme.COLOR_WHITE, height=30).pack()
+        rented_frame = tk.Frame(self, bg=theme.COLOR_WHITE, padx=30)
+        rented_frame.pack(fill="both", expand=True, pady=(20, 20))
+
+        tk.Label(rented_frame, text="Mobil Sedang Disewa", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, fg=theme.COLOR_DARK).pack(anchor="w", pady=(0, 10))
+
+        style = ttk.Style()
+        style.configure("Dashboard.Treeview", rowheight=28, background=theme.COLOR_WHITE, fieldbackground=theme.COLOR_WHITE, font=("Arial", 10))
+        style.configure("Dashboard.Treeview.Heading", font=("Arial", 10, "bold"), background=theme.COLOR_PRIMARY, foreground=theme.COLOR_WHITE)
+
+        table_container = tk.Frame(rented_frame, bg=theme.COLOR_WHITE)
+        table_container.pack(fill="both", expand=True)
+
+        columns = ("No", "Plat Nomor", "Merek", "Tipe", "Warna")
+        self.rented_table = ttk.Treeview(table_container, columns=columns, show="headings", style="Dashboard.Treeview", height=6)
+        for col in columns:
+            self.rented_table.heading(col, text=col)
+            self.rented_table.column(col, anchor="center", width=120)
+        self.rented_table.column("No", width=40)
+
+        scrollbar = ttk.Scrollbar(table_container, orient="vertical", command=self.rented_table.yview)
+        self.rented_table.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        self.rented_table.pack(side="left", fill="both", expand=True)
 
     def refresh_data(self):
         stats = get_dashboard_stats()
@@ -74,3 +98,9 @@ class DashboardView(tk.Frame):
         if app.current_user:
             name = app.current_user.get("name", "User")
             self.lbl_welcome.config(text=f"Selamat Datang, {name}")
+
+        for item in self.rented_table.get_children():
+            self.rented_table.delete(item)
+        rented_cars = get_rented_cars()
+        for i, car in enumerate(rented_cars, 1):
+            self.rented_table.insert("", "end", values=(i, car["plate_number"], car["brand"], car["type"], car["color"] or "-"))

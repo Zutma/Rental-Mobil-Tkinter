@@ -80,28 +80,35 @@ class FormField:
     
     def set(self, val):
         state = self.entry.cget("state")
-        if state == "readonly":
+        if state in ("readonly", "disabled"):
             self.entry.config(state="normal")
             
         self.entry.delete(0, tk.END)
         self.entry.insert(0, val)
         
-        if state == "readonly":
-            self.entry.config(state="readonly")
+        if state in ("readonly", "disabled"):
+            self.entry.config(state=state)
             
     def clear(self):
         state = self.entry.cget("state")
-        if state == "readonly":
+        if state in ("readonly", "disabled"):
             self.entry.config(state="normal")
             
         self.entry.delete(0, tk.END)
         
-        if state == "readonly":
-            self.entry.config(state="readonly")
+        if state in ("readonly", "disabled"):
+            self.entry.config(state=state)
 
     def set_readonly(self, is_readonly=True):
         if is_readonly:
             self.entry.config(state="readonly", bg="#F0F0F0")
+        else:
+            self.entry.config(state="normal", bg=theme.COLOR_WHITE)
+
+    def set_disabled(self, is_disabled=True):
+        """Disable/enable field"""
+        if is_disabled:
+            self.entry.config(state="disabled", disabledbackground="#F0F0F0", disabledforeground="#999999")
         else:
             self.entry.config(state="normal", bg=theme.COLOR_WHITE)
 
@@ -112,7 +119,14 @@ class DropdownField:
 
         tk.Label(self.frame, text=label_text, font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE, width=15, anchor="w").pack(side="left")
         self.var = tk.StringVar()
-        self.combo = ttk.Combobox(self.frame, textvariable=self.var, font=theme.FONT_NORMAL, state="readonly")
+
+        style = ttk.Style()
+        style.configure("White.TCombobox",
+                        fieldbackground=theme.COLOR_WHITE,
+                        background=theme.COLOR_WHITE,
+                        foreground=theme.COLOR_DARK)
+
+        self.combo = ttk.Combobox(self.frame, textvariable=self.var, font=theme.FONT_NORMAL, state="readonly", style="White.TCombobox")
         if values:
             self.combo["values"] = values
         self.combo.pack(side="left", fill="x", expand=True, ipady=5)
@@ -129,6 +143,13 @@ class DropdownField:
     def clear(self): self.var.set("")
     def bind(self, event, handler): self.combo.bind(event, handler)
 
+    def set_disabled(self, is_disabled=True):
+        """Disable/enable dropdown"""
+        if is_disabled:
+            self.combo.config(state="disabled")
+        else:
+            self.combo.config(state="readonly")
+
 class DateField:
     def __init__(self, parent, label_text):
         self.frame = tk.Frame(parent, bg=theme.COLOR_WHITE)
@@ -136,9 +157,9 @@ class DateField:
 
         tk.Label(self.frame, text=label_text, font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE, width=15, anchor="w").pack(side="left")
         self.entry = DateEntry(self.frame, font=theme.FONT_NORMAL, date_pattern="yyyy-mm-dd",
-                               background=theme.COLOR_PRIMARY, foreground="white",
-                               headersbackground=theme.COLOR_PRIMARY, headersforeground="white",
-                               selectbackground=theme.COLOR_SECONDARY, selectforeground="white",
+                               background=theme.COLOR_PRIMARY, foreground=theme.COLOR_WHITE,
+                               headersbackground=theme.COLOR_PRIMARY, headersforeground=theme.COLOR_WHITE,
+                               selectbackground=theme.COLOR_SECONDARY, selectforeground=theme.COLOR_WHITE,
                                borderwidth=1, width=20)
         self.entry.pack(side="left", fill="x", expand=True, ipady=5)
 
@@ -166,3 +187,46 @@ class DateField:
 
     def bind(self, event, handler):
         self.entry.bind(event, handler)
+
+    def set_disabled(self, is_disabled=True):
+        """Disable/enable date field"""
+        if is_disabled:
+            self.entry.config(state="disabled")
+        else:
+            self.entry.config(state="normal")
+
+class NumberField(FormField):
+    def __init__(self, parent, label_text, **kwargs):
+        super().__init__(parent, label_text, **kwargs)
+        self.entry.bind("<KeyRelease>", self._format_nominal)
+
+    def set(self, val):
+        """Format angka secara otomatis saat nilai di-set dari sistem/kode"""
+        try:
+            val_str = str(val).replace("Rp.", "").replace("Rp", "").replace(".", "").replace(",", "").strip()
+            if val_str and val_str != "None":
+                nilai = int(float(val_str))
+                val = f"Rp. {nilai:,}".replace(",", ".")
+        except ValueError:
+            pass
+        
+        super().set(val)
+
+    def _format_nominal(self, event=None):
+        try:
+            nilai_str = self.entry.get().replace("Rp.", "").replace("Rp", "").replace(".", "").replace(",", "").strip()
+            if not nilai_str:
+                self.entry.delete(0, tk.END)
+                return
+            
+            nilai = int(float(nilai_str))
+            
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, f"Rp. {nilai:,}".replace(",", "."))
+        except ValueError:
+            pass
+
+    def get_value(self):
+        """Ambil angka bersih (tanpa Rp dan tanpa titik) untuk disimpan ke DB"""
+        val = self.entry.get().replace("Rp.", "").replace("Rp", "").replace(".", "").replace(",", "").strip()
+        return val if val else "0"

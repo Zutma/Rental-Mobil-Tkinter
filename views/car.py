@@ -1,7 +1,7 @@
 import tkinter as tk
 import theme
 from tkinter import ttk, messagebox
-from views.components import PrimaryButton, ActionButton, InputField, FormField, DropdownField
+from views.components import PrimaryButton, ActionButton, InputField, FormField, DropdownField, NumberField
 from database.car import get_all_cars, add_car, update_car, delete_car
 from database.brand import get_brands, add_brand
 from database.car_type import get_types_by_brand, add_type
@@ -10,24 +10,24 @@ class CarView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.configure(bg="white")
+        self.configure(bg=theme.COLOR_WHITE)
 
-        header_frame = tk.Frame(self, bg="white", padx=20, pady=20)
+        header_frame = tk.Frame(self, bg=theme.COLOR_WHITE, padx=20, pady=20)
         header_frame.pack(fill="x")
-        tk.Label(header_frame, text="DATA MOBIL", font=theme.FONT_TITLE, bg="white", fg=theme.COLOR_DARK).pack(side="left")
+        tk.Label(header_frame, text="DATA MOBIL", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, fg=theme.COLOR_DARK).pack(side="left")
 
-        content_frame = tk.Frame(self, bg="white", padx=20)
+        content_frame = tk.Frame(self, bg=theme.COLOR_WHITE, padx=20)
         content_frame.pack(fill="both", expand=True)
 
-        action_frame = tk.Frame(content_frame, bg="white")
+        action_frame = tk.Frame(content_frame, bg=theme.COLOR_WHITE)
         action_frame.pack(fill="x", pady=(0, 15))
 
-        search_container = tk.Frame(action_frame, bg="white")
+        search_container = tk.Frame(action_frame, bg=theme.COLOR_WHITE)
         search_container.pack(side="left")
-        tk.Label(search_container, text="Cari :", font=theme.FONT_NORMAL, bg="white").pack(side="left")
+        tk.Label(search_container, text="Cari :", font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE).pack(side="left")
         self.ent_search = InputField(search_container, width=25)
         self.ent_search.pack(side="left", padx=10, ipady=5)
-        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg="white", relief="flat", command=self.do_search).pack(side="left")
+        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg=theme.COLOR_WHITE, relief="flat", command=self.do_search).pack(side="left")
 
         self.btn_delete = ActionButton(action_frame, text="HAPUS", color=theme.COLOR_DANGER, command=self.do_delete)
         self.btn_delete.pack(side="right", padx=5)
@@ -38,10 +38,10 @@ class CarView(tk.Frame):
         self.btn_add = PrimaryButton(action_frame, text="+ TAMBAH", command=self.do_add)
         self.btn_add.pack(side="right", padx=5)
 
-        table_frame = tk.Frame(content_frame, bg="white")
+        table_frame = tk.Frame(content_frame, bg=theme.COLOR_WHITE)
         table_frame.pack(fill="both", expand=True, pady=(0, 20))
 
-        columns = ("No", "Plat Nomor", "Merek", "Tipe", "Warna", "Tahun", "Harga Sewa", "Status")
+        columns = ("No", "Plat Nomor", "Merek", "Tipe", "Warna", "Tahun", "Harga Sewa", "Status", "Jumlah")
         self.table = ttk.Treeview(table_frame, columns=columns, show="headings")
         for col in columns:
             self.table.heading(col, text=col)
@@ -76,10 +76,16 @@ class CarView(tk.Frame):
             self.table.delete(item)
         self._car_ids = []
         rows = get_all_cars()
+        
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background=theme.COLOR_GRAY)
+
         for i, r in enumerate(rows, 1):
             self._car_ids.append(r["id"])
-            price = f"{r['rental_price']:,.0f}" if r["rental_price"] else "0"
-            self.table.insert("", "end", values=(i, r["plate_number"], r["brand"], r["type"], r["color"], r["year"], price, r["status"]))
+            price = f"Rp. {r['rental_price']:,.0f}".replace(",", ".") if r["rental_price"] else "Rp. 0"
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["plate_number"], r["brand"], r["type"], r["color"], r["year"], price, r["status"], r.get("brand_count", 0)), tags=(row_tag,))
+            
         self.btn_edit.update_style(False)
         self.btn_delete.update_style(False)
 
@@ -89,10 +95,15 @@ class CarView(tk.Frame):
             self.table.delete(item)
         self._car_ids = []
         rows = get_all_cars(keyword)
+        
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background="#F5F5F5")
+
         for i, r in enumerate(rows, 1):
             self._car_ids.append(r["id"])
             price = f"{r['rental_price']:,.0f}" if r["rental_price"] else "0"
-            self.table.insert("", "end", values=(i, r["plate_number"], r["brand"], r["type"], r["color"], r["year"], price, r["status"]))
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["plate_number"], r["brand"], r["type"], r["color"], r["year"], price, r["status"], r.get("brand_count", 0)), tags=(row_tag,))
 
     def do_add(self):
         form = self.controller.views["CarFormView"]
@@ -146,7 +157,7 @@ class CarFormView(tk.Frame):
         self.f_tipe     = DropdownField(container, "Tipe :")
         self.f_warna    = FormField(container, "Warna :")
         self.f_tahun    = FormField(container, "Tahun :")
-        self.f_harga    = FormField(container, "Harga Sewa :")
+        self.f_harga    = NumberField(container, "Harga Sewa :")
         self.f_status   = DropdownField(container, "Status :", values=["available", "rented", "maintenance"])
 
         self.f_merek.bind("<<ComboboxSelected>>", self._on_brand_change)
@@ -155,7 +166,7 @@ class CarFormView(tk.Frame):
         btn_frame.pack(fill="x", padx=20, pady=30)
         
         PrimaryButton(btn_frame,"SIMPAN", command=self.do_save).pack(side="right", padx=10)
-        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg="white", relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("CarView")).pack(side="right", padx=10)
+        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg=theme.COLOR_WHITE, relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("CarView")).pack(side="right", padx=10)
 
     def _load_brands(self):
         brands = get_brands()
@@ -174,6 +185,11 @@ class CarFormView(tk.Frame):
     def set_mode(self, mode, data=None):
         self._mode = mode
         self._edit_id = None
+        
+        self.f_plat.set_disabled(False)
+        self.f_merek.set_disabled(False)
+        self.f_tipe.set_disabled(False)
+        
         self.f_plat.clear()
         self.f_merek.clear()
         self.f_tipe.clear()
@@ -186,9 +202,12 @@ class CarFormView(tk.Frame):
         if mode == "edit" and data:
             self._edit_id = data["id"]
             self.f_plat.set(data["plate_number"])
+            self.f_plat.set_disabled(True)       # KUNCI: Plat Nomor (UNIQUE KEY)
             self.f_merek.set(data["brand"])
+            self.f_merek.set_disabled(True)       # KUNCI: Merek (FK brand_id)
             self._on_brand_change()
             self.f_tipe.set(data["type"])
+            self.f_tipe.set_disabled(True)        # KUNCI: Tipe (FK type_id)
             self.f_warna.set(data["color"] or "")
             self.f_tahun.set(data["year"] or "")
             self.f_harga.set(str(data["rental_price"] or ""))
@@ -200,11 +219,23 @@ class CarFormView(tk.Frame):
         tipe_name = self.f_tipe.get().strip()
         warna = self.f_warna.get().strip()
         tahun = self.f_tahun.get().strip()
-        harga = self.f_harga.get().strip()
+        harga = self.f_harga.get_value()
         status = self.f_status.get().strip()
 
-        if not plat or not merek_name or not tipe_name:
-            messagebox.showwarning("Peringatan", "Plat Nomor, Merek, dan Tipe wajib diisi!")
+        if not plat:
+            messagebox.showwarning("Peringatan", "Plat Nomor wajib diisi!")
+            return
+        if not merek_name:
+            messagebox.showwarning("Peringatan", "Merek wajib dipilih!")
+            return
+        if not tipe_name:
+            messagebox.showwarning("Peringatan", "Tipe wajib dipilih!")
+            return
+        if not harga or harga == "0":
+            messagebox.showwarning("Peringatan", "Harga Sewa wajib diisi!")
+            return
+        if not status:
+            messagebox.showwarning("Peringatan", "Status wajib dipilih!")
             return
 
         brand_id = self.f_merek.get_id()
@@ -221,9 +252,14 @@ class CarFormView(tk.Frame):
 
         try:
             tahun_val = int(tahun) if tahun else None
+        except ValueError:
+            messagebox.showwarning("Peringatan", "Tahun harus berupa angka!")
+            return
+
+        try:
             harga_val = float(harga) if harga else 0
         except ValueError:
-            messagebox.showwarning("Peringatan", "Tahun harus angka, Harga harus angka!")
+            messagebox.showwarning("Peringatan", "Harga Sewa harus berupa angka!")
             return
 
         try:

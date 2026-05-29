@@ -8,24 +8,24 @@ class CustomerView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.configure(bg="white")
+        self.configure(bg=theme.COLOR_WHITE)
 
-        header_frame = tk.Frame(self, bg="white", padx=20, pady=20)
+        header_frame = tk.Frame(self, bg=theme.COLOR_WHITE, padx=20, pady=20)
         header_frame.pack(fill="x")
-        tk.Label(header_frame, text="DATA PELANGGAN", font=theme.FONT_TITLE, bg="white", fg=theme.COLOR_DARK).pack(side="left")
+        tk.Label(header_frame, text="DATA PELANGGAN", font=theme.FONT_TITLE, bg=theme.COLOR_WHITE, fg=theme.COLOR_DARK).pack(side="left")
 
-        content_frame = tk.Frame(self, bg="white", padx=20)
+        content_frame = tk.Frame(self, bg=theme.COLOR_WHITE, padx=20)
         content_frame.pack(fill="both", expand=True)
 
-        action_frame = tk.Frame(content_frame, bg="white")
+        action_frame = tk.Frame(content_frame, bg=theme.COLOR_WHITE)
         action_frame.pack(fill="x", pady=(0, 15))
 
-        search_container = tk.Frame(action_frame, bg="white")
+        search_container = tk.Frame(action_frame, bg=theme.COLOR_WHITE)
         search_container.pack(side="left")
-        tk.Label(search_container, text="Cari :", font=theme.FONT_NORMAL, bg="white").pack(side="left")
+        tk.Label(search_container, text="Cari :", font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE).pack(side="left")
         self.ent_search = InputField(search_container, width=25)
         self.ent_search.pack(side="left", padx=10, ipady=5)
-        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg="white", relief="flat", command=self.do_search).pack(side="left")
+        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg=theme.COLOR_WHITE, relief="flat", command=self.do_search).pack(side="left")
 
         self.btn_delete = ActionButton(action_frame, text="HAPUS", color=theme.COLOR_DANGER, command=self.do_delete)
         self.btn_delete.pack(side="right", padx=5)
@@ -35,7 +35,7 @@ class CustomerView(tk.Frame):
 
         PrimaryButton(action_frame, text="+ TAMBAH", command=self.do_add).pack(side="right", padx=5)
 
-        table_frame = tk.Frame(content_frame, bg="white")
+        table_frame = tk.Frame(content_frame, bg=theme.COLOR_WHITE)
         table_frame.pack(fill="both", expand=True, pady=(0, 20))
 
         columns = ("No", "NIK", "Nama", "No. Telp", "Alamat")
@@ -64,9 +64,13 @@ class CustomerView(tk.Frame):
             self.table.delete(item)
         self._cust_ids = []
         rows = get_all_customers()
+
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background=theme.COLOR_GRAY)
         for i, r in enumerate(rows, 1):
             self._cust_ids.append(r["id"])
-            self.table.insert("", "end", values=(i, r["nik"], r["name"], r["phone"] or "", r["address"] or ""))
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["nik"], r["name"], r["phone"] or "", r["address"] or ""), tags=(row_tag,))
         self.btn_edit.update_style(False)
         self.btn_delete.update_style(False)
 
@@ -76,9 +80,12 @@ class CustomerView(tk.Frame):
             self.table.delete(item)
         self._cust_ids = []
         rows = get_all_customers(keyword)
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background=theme.COLOR_GRAY)
         for i, r in enumerate(rows, 1):
             self._cust_ids.append(r["id"])
-            self.table.insert("", "end", values=(i, r["nik"], r["name"], r["phone"] or "", r["address"] or ""))
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["nik"], r["name"], r["phone"] or "", r["address"] or ""), tags=(row_tag,))
 
     def do_add(self):
         form = self.controller.views["CustomerFormView"]
@@ -115,6 +122,7 @@ class CustomerView(tk.Frame):
             return
         self.refresh_data()
 
+
 class CustomerFormView(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -136,11 +144,14 @@ class CustomerFormView(tk.Frame):
         btn_frame.pack(fill="x", padx=20, pady=30)
         
         PrimaryButton(btn_frame, "SIMPAN", command=self.do_save).pack(side="right", padx=10)
-        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg="white", relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("CustomerView")).pack(side="right", padx=10)
+        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg=theme.COLOR_WHITE, relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("CustomerView")).pack(side="right", padx=10)
 
     def set_mode(self, mode, data=None):
         self._mode = mode
         self._edit_id = None
+        
+        self.f_nik.set_disabled(False)
+        
         self.f_nik.clear()
         self.f_nama.clear()
         self.f_telp.clear()
@@ -148,6 +159,7 @@ class CustomerFormView(tk.Frame):
         if mode == "edit" and data:
             self._edit_id = data["id"]
             self.f_nik.set(data["nik"])
+            self.f_nik.set_disabled(True)   
             self.f_nama.set(data["name"])
             self.f_telp.set(data["phone"] or "")
             self.f_alamat.set(data["address"] or "")
@@ -157,9 +169,23 @@ class CustomerFormView(tk.Frame):
         nama = self.f_nama.get().strip()
         telp = self.f_telp.get().strip()
         alamat = self.f_alamat.get().strip()
-        if not nik or not nama:
-            messagebox.showwarning("Peringatan", "NIK dan Nama wajib diisi!")
+
+        if not nik:
+            messagebox.showwarning("Peringatan", "NIK wajib diisi!")
             return
+        if not nik.isdigit():
+            messagebox.showwarning("Peringatan", "NIK harus berupa angka!")
+            return
+        if len(nik) != 16:
+            messagebox.showwarning("Peringatan", "NIK harus 16 digit!")
+            return
+        if not nama:
+            messagebox.showwarning("Peringatan", "Nama wajib diisi!")
+            return
+        if telp and not telp.isdigit():
+            messagebox.showwarning("Peringatan", "No. Telp harus berupa angka!")
+            return
+
         try:
             if self._mode == "edit" and self._edit_id:
                 update_customer(self._edit_id, nik, nama, telp, alamat)

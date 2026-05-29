@@ -25,7 +25,7 @@ class UserView(tk.Frame):
         tk.Label(search_container, text="Cari :", font=theme.FONT_NORMAL, bg=theme.COLOR_WHITE).pack(side="left")
         self.ent_search = InputField(search_container, width=25)
         self.ent_search.pack(side="left", padx=10, ipady=5)
-        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg="white", relief="flat", command=self.do_search).pack(side="left")
+        tk.Button(search_container, text="🔍", font=theme.FONT_NORMAL, bg=theme.COLOR_PRIMARY, fg=theme.COLOR_WHITE, relief="flat", command=self.do_search).pack(side="left")
 
         self.btn_delete = ActionButton(action_frame, text="HAPUS", color=theme.COLOR_DANGER, command=self.do_delete)
         self.btn_delete.pack(side="right", padx=5)
@@ -62,11 +62,14 @@ class UserView(tk.Frame):
     def refresh_data(self):
         for item in self.table.get_children():
             self.table.delete(item)
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background=theme.COLOR_GRAY)
         self._user_ids = []
         rows = get_all_users()
         for i, r in enumerate(rows, 1):
             self._user_ids.append(r["id"])
-            self.table.insert("", "end", values=(i, r["name"], r["role"]))
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["name"], r["role"]), tags=(row_tag,))
         self.btn_edit.update_style(False)
         self.btn_delete.update_style(False)
 
@@ -74,11 +77,14 @@ class UserView(tk.Frame):
         keyword = self.ent_search.get().strip()
         for item in self.table.get_children():
             self.table.delete(item)
+        self.table.tag_configure('oddrow', background=theme.COLOR_WHITE)
+        self.table.tag_configure('evenrow', background=theme.COLOR_GRAY)
         self._user_ids = []
         rows = get_all_users(keyword)
         for i, r in enumerate(rows, 1):
             self._user_ids.append(r["id"])
-            self.table.insert("", "end", values=(i, r["name"], r["role"]))
+            row_tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+            self.table.insert("", "end", values=(i, r["name"], r["role"]), tags=(row_tag,))
 
     def do_add(self):
         form = self.controller.views["UserFormView"]
@@ -127,37 +133,69 @@ class UserFormView(tk.Frame):
         container = tk.Frame(self, bg=theme.COLOR_WHITE)
         container.pack(fill="x", padx=20, pady=10)
 
-        self.f_name     = FormField(container, "Nama :")
-        self.f_password = FormField(container, "Password :", show="*")
-        self.f_role     = DropdownField(container, "Role :", values=["admin", "petugas"])
+        self.f_name             = FormField(container, "Nama :")
+        self.f_password         = FormField(container, "Password :", show="*")
+        self.f_password_confirm = FormField(container, "Konfirmasi :", show="*")
+        self.f_role             = DropdownField(container, "Role :", values=["admin", "petugas"])
+
+        self.lbl_password_hint = tk.Label(container, text="", font=("Arial", 8, "italic"),
+                                          bg=theme.COLOR_WHITE, fg="#999999", anchor="w")
+        self.lbl_password_hint.pack(fill="x", padx=(130, 0), pady=(0, 5))
 
         btn_frame = tk.Frame(self, bg=theme.COLOR_WHITE)
         btn_frame.pack(fill="x", padx=20, pady=30)
         
         PrimaryButton(btn_frame, "SIMPAN", command=self.do_save).pack(side="right", padx=10)
-        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg="white", relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("UserView")).pack(side="right", padx=10)
+        tk.Button(btn_frame, text="KEMBALI", font=theme.FONT_SMALL, bg=theme.COLOR_GRAY, fg=theme.COLOR_WHITE, relief="flat", padx=20, pady=10, command=lambda: self.controller.show_view("UserView")).pack(side="right", padx=10)
 
     def set_mode(self, mode, data=None):
         self._mode = mode
         self._edit_id = None
         self.f_name.clear()
         self.f_password.clear()
+        self.f_password_confirm.clear()
         self.f_role.clear()
+
         if mode == "edit" and data:
             self._edit_id = data["id"]
             self.f_name.set(data["name"])
             self.f_role.set(data["role"])
+            self.lbl_password_hint.config(text="* Kosongkan password jika tidak ingin mengubahnya")
+        else:
+            self.lbl_password_hint.config(text="")
 
     def do_save(self):
         name = self.f_name.get().strip()
         password = self.f_password.get().strip()
+        password_confirm = self.f_password_confirm.get().strip()
         role = self.f_role.get().strip()
-        if not name or not role:
-            messagebox.showwarning("Peringatan", "Nama dan Role wajib diisi!")
+
+        if not name:
+            messagebox.showwarning("Peringatan", "Nama wajib diisi!")
             return
-        if self._mode == "add" and not password:
-            messagebox.showwarning("Peringatan", "Password wajib diisi untuk user baru!")
+        if not role:
+            messagebox.showwarning("Peringatan", "Role wajib dipilih!")
             return
+
+        if self._mode == "add":
+            if not password:
+                messagebox.showwarning("Peringatan", "Password wajib diisi untuk user baru!")
+                return
+            if len(password) < 4:
+                messagebox.showwarning("Peringatan", "Password minimal 4 karakter!")
+                return
+            if password != password_confirm:
+                messagebox.showwarning("Peringatan", "Konfirmasi password tidak cocok!")
+                return
+        else:
+            if password:
+                if len(password) < 4:
+                    messagebox.showwarning("Peringatan", "Password minimal 4 karakter!")
+                    return
+                if password != password_confirm:
+                    messagebox.showwarning("Peringatan", "Konfirmasi password tidak cocok!")
+                    return
+
         try:
             if self._mode == "edit" and self._edit_id:
                 update_user(self._edit_id, name, password, role)
